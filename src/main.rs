@@ -1,5 +1,7 @@
 use std::env;
 use std::fs;
+use interpreter::Token;
+use interpreter::Lexer;
 fn main() {
     let args:Vec<String>=env::args().collect();
     if args.len()<3{
@@ -15,13 +17,27 @@ fn main() {
                String::new()
             });
             if !file_contents.is_empty(){
-                panic!("Scanner not implemented");
+                let lexer=Lexer::new(file_contents.chars());
+            for result in lexer{
+               match result{
+                   Ok(token)=>println!("{}",token),
+                   Err(e)=>eprintln!("Error:{}",e),
+               }
+            }
             }else{
                 println!("EOF null");
             }
+            // let lexer=Lexer::new(file_contents.chars());
+            // for result in lexer{
+            //    match result{
+            //        Ok(token)=>println!("{}",token),
+            //        Err(e)=>eprintln!("Error:{}",e),
+            //    }
+            // }
         }
         _=>{
             println!("Unknown command: {}", command);
         }
     }
 }
+
