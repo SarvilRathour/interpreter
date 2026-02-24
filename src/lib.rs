@@ -12,6 +12,7 @@ pub enum Token{
     Semicolon,
     Star,
     Eof,
+    Slash
 }
 impl Display for Token{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -27,6 +28,7 @@ impl Display for Token{
             Token::Semicolon=>write!(f,"Semicolon"),
             Token::Star=>write!(f,"Star"),
             Token::Eof=>write!(f,"Eof"),
+            Token::Slash=>write!(f,"Slash"),
         }
     }
 }
@@ -63,6 +65,15 @@ where
         match c{
             '('=>return Some(Ok(Token::LeftParen)),
             ')'=>return Some(Ok(Token::RightParen)),
+            '{'=>return Some(Ok(Token::LeftBrace)),
+            '}'=>return Some(Ok(Token::RightBrace)),
+            '.'=>return Some(Ok(Token::Dot)),
+            ','=>return Some(Ok(Token::Comma)),
+            ';'=>return Some(Ok(Token::Semicolon)),
+            '+'=>return Some(Ok(Token::Plus)),
+            '-'=>return Some(Ok(Token::Minus)),
+            '*'=>return Some(Ok(Token::Star)),
+            '/'=>return Some(OK(Token::Slash)),
             _ => return Some(Err(Error::msg(format!("Unexpected char: '{}'", c)))),
         }
     }
