@@ -16,7 +16,8 @@ pub enum Token {
     Slash,
     Equal,
     Less,
-    LessEqual
+    LessEqual,
+    Identifier(String),
 }
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -36,6 +37,7 @@ impl Display for Token {
             Token::Equal => write!(f, "Equal"),
             Token::Less=>write!(f,"Less"),
             Token::LessEqual=>write!(f,"LessEqual"),
+            Token::Identifier(s)=>write!(f,"{}",s),
         }
     }
 }
@@ -73,6 +75,17 @@ where
         };
 
         match c {
+            'a'..'z'|'A'..'Z'=>{
+                let mut word=String::from(c);
+                while let Some(&next_v)=self.iterator.peek(){
+                    if next_v.is_alphanumeric(){
+                        word.push(self.iterator.next().unwrap())
+                    }else{
+                        break
+                    }
+                }
+                Some(Ok(Token::Identifier(word)))
+            }
             '(' => return Some(Ok(Token::LeftParen)),
             ')' => return Some(Ok(Token::RightParen)),
             '{' => return Some(Ok(Token::LeftBrace)),
@@ -98,54 +111,3 @@ where
     }
 }
 
-// use miette::{Error, WrapErr};
-// #[derive(Debug)]
-// pub enum Token{
-//     LeftParen,
-//     RightParen,
-//     Eof,
-// }
-// #[derive(Debug)]
-// struct Lexer<I>
-// where
-// I:Iterator<Item = char>
-// {
-//     iterator:I,
-//     eof:bool
-// }
-// impl<I:Iterator<Item=char>> Lexer<I>{
-//     pub fn new(input:impl IntoIterator<Item = char, IntoIter=I>)->Self{
-//         Self{
-//             iterator:input.into_iter(),eof:false,
-//         }
-//     }
-// }
-// impl <I> Iterator for Lexer<I>
-// where
-//     I:Iterator<Item = char>
-// {
-//     type Item=Result<Token,Error>;
-//     fn next(&mut self)->Option<Self::Item>{
-//         if self.eof{return None;}
-//         let c=match self.iterator.next(){
-//             Some(c)=>c,
-//             None=>{
-//                 self.eof=true;
-//                 return Some(Ok(Token::Eof));
-//             }
-//         };
-//         match c{
-//             '('=>return Some(Ok(Token::LeftParen)),
-//             ')'=>return Some(Ok(Token::RightParen)),
-//             _ => return Some(Err(Error::msg(format!("Unexpected char: '{}'", c)))),
-//         };
-//     }
-// }
-// fn main(){
-//     //To make-- a generic lazy iterator
-//     let a = "())".chars();
-//     let c=Lexer::new(a);
-//     for ans in c{
-//         println!("{:?}",ans);
-//     }
-// }

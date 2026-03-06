@@ -8,9 +8,12 @@
 
 
 # Lib.rs--**Lexer**
-> A lexer (lexical analyzer or scanner) is a computer program or component that breaks raw input code (a stream of characters) into meaningful, categorized units called tokens
+> A lexer (lexical analyzer or scanner) is a computer program or component that breaks raw input code (a stream of characters) into meaningful, categorized units called tokens.
+
 **Token**: https://craftinginterpreters.com/scanning.html#recognizing-lexemes
-> To perform Lazy iterator I decided to use Iterator trait, Peekable is wrapped around I is to get the peek method 
+
+> To perform Lazy iterator I decided to use Iterator trait, Peekable is wrapped around I is to get the peek method. 
+
 `rust 
   pub struct Lexer<I>
 where
