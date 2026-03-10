@@ -75,6 +75,9 @@ where
         };
 
         match c {
+            ' '|'\r'|'\t'|'\n'=>{
+                self.next()
+            }
             'a'..'z'|'A'..'Z'=>{
                 let mut word=String::from(c);
                 while let Some(&next_v)=self.iterator.peek(){
@@ -96,7 +99,21 @@ where
             '+' => return Some(Ok(Token::Plus)),
             '-' => return Some(Ok(Token::Minus)),
             '*' => return Some(Ok(Token::Star)),
-            '/' => return Some(Ok(Token::Slash)),
+            // '/' => return Some(Ok(Token::Slash)),
+            '/'=>{
+                if let Some('/')=self.iterator.peek(){
+                    self.iterator.next();
+                    while let Some(&c)=self.iterator.peek(){
+                        if c=='\n'{
+                            break;
+                        }
+                        self.iterator.next();
+                    }
+                    self.next()
+                }else{
+                    return Some(Ok(Token::Slash))
+                }
+            }
             '=' => return Some(Ok(Token::Equal)),
             '<' =>{
                 if let Some('=')=self.iterator.peek(){
