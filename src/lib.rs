@@ -127,4 +127,31 @@ where
         }
     }
 }
-
+#[cfg(test)]
+mod tests{
+    use super::*;
+    #[test]
+    //Checking for string
+    fn test_identifier(){
+        let mut lexer=Lexer::new("hello".chars());
+        let token=lexer.next().unwrap().unwrap();
+        match token{
+            Token::Identifier(s)=>assert_eq!(s,"hello"),
+            _=>panic!("Expected identifer"),
+        }
+    }
+    #[test]
+    //Checking for comments
+    fn test_comment_skipped(){
+        let mut lexer=Lexer::new("// comment\n;".chars());
+        let token=lexer.next().unwrap().unwrap();
+        assert!(matches!(token,Token::Semicolon));
+    }
+    #[test]
+    //Checking for total cutoff of comments and EOF ommition
+    fn test_eof(){
+        let mut lexer=Lexer::new("// Comment".chars());
+        let token=lexer.next().unwrap().unwrap();
+        assert!(matches!(token,Token::Eof))
+    }
+}
