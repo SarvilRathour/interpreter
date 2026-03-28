@@ -35,10 +35,32 @@ impl Display for Token {
             Token::Eof => write!(f, "Eof"),
             Token::Slash => write!(f, "Slash"),
             Token::Equal => write!(f, "Equal"),
-            Token::Less=>write!(f,"Less"),
-            Token::LessEqual=>write!(f,"LessEqual"),
-            Token::Identifier(s)=>write!(f,"{}",s),
+            Token::Less => write!(f, "Less"),
+            Token::LessEqual => write!(f, "LessEqual"),
+            Token::Identifier(s) => write!(f, "{}", s),
         }
+    }
+}
+//Graceful handling of error
+#[derive(Debug)]
+pub struct LexError {
+    pub message: String,
+    pub line: usize,
+    pub column: usize,
+}
+impl std::fmt::Display for LexError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} at line {}, column {}",
+            self.message, self.line, self.column
+        )
+    }
+}
+//Miette for Error
+impl From<LexError> for Error {
+    fn from(err: LexError) -> Self {
+        Error::msg(err.to_string())
     }
 }
 //To hold the state
@@ -48,12 +70,16 @@ where
 {
     iterator: Peekable<I>,
     eof: bool,
+    line: usize,
+    column: usize,
 }
 impl<I: Iterator<Item = char>> Lexer<I> {
     pub fn new(input: impl IntoIterator<Item = char, IntoIter = I>) -> Self {
         Self {
             iterator: input.into_iter().peekable(), //To cast IntoIterator to Iterator
-            eof: false,                  //To avoid the infinite eof
+            eof: false,                             //To avoid the infinite eof
+            line: 1,
+            column: 0,
         }
     }
 }
@@ -67,7 +93,14 @@ where
             return None;
         }
         let c = match self.iterator.next() {
-            Some(c) => c,
+            Some(c) => {
+                self.column += 1;
+                if c == '\n' {
+                    self.line += 1;
+                    self.column = 0;
+                }
+                c
+            }
             None => {
                 self.eof = true;
                 return Some(Ok(Token::Eof));
@@ -75,16 +108,14 @@ where
         };
 
         match c {
-            ' '|'\r'|'\t'|'\n'=>{
-                self.next()
-            }
-            'a'..'z'|'A'..'Z'=>{
-                let mut word=String::from(c);
-                while let Some(&next_v)=self.iterator.peek(){
-                    if next_v.is_alphanumeric(){
+            c if c.is_whitespace() => self.next(),
+            'a'..'z' | 'A'..'Z' => {
+                let mut word = String::from(c);
+                while let Some(&next_v) = self.iterator.peek() {
+                    if next_v.is_alphanumeric() {
                         word.push(self.iterator.next().unwrap())
-                    }else{
-                        break
+                    } else {
+                        break;
                     }
                 }
                 Some(Ok(Token::Identifier(word)))
@@ -100,58 +131,65 @@ where
             '-' => return Some(Ok(Token::Minus)),
             '*' => return Some(Ok(Token::Star)),
             // '/' => return Some(Ok(Token::Slash)),
-            '/'=>{
-                if let Some('/')=self.iterator.peek(){
+            '/' => {
+                if let Some('/') = self.iterator.peek() {
                     self.iterator.next();
-                    while let Some(&c)=self.iterator.peek(){
-                        if c=='\n'{
+                    while let Some(&c) = self.iterator.peek() {
+                        if c == '\n' {
                             break;
                         }
                         self.iterator.next();
                     }
                     self.next()
-                }else{
-                    return Some(Ok(Token::Slash))
+                } else {
+                    return Some(Ok(Token::Slash));
                 }
             }
             '=' => return Some(Ok(Token::Equal)),
-            '<' =>{
-                if let Some('=')=self.iterator.peek(){
+            '<' => {
+                if let Some('=') = self.iterator.peek() {
                     self.iterator.next();
                     return Some(Ok(Token::LessEqual));
-                }else{
+                } else {
                     return Some(Ok(Token::Less));
                 }
-            },
-            _ => return Some(Err(Error::msg(format!("Unexpected char: '{}'", c)))),
+            }
+            _ => {
+                return Some(Err(LexError {
+                    message: format!("Unexpected character '{}'", c),
+                    line: self.line,
+                    column: self.column,
+                }
+                .into()));
+            }
         }
     }
 }
 #[cfg(test)]
-mod tests{
+mod tests {
     use super::*;
     #[test]
     //Checking for string
-    fn test_identifier(){
-        let mut lexer=Lexer::new("hello".chars());
-        let token=lexer.next().unwrap().unwrap();
-        match token{
-            Token::Identifier(s)=>assert_eq!(s,"hello"),
-            _=>panic!("Expected identifer"),
+    fn test_identifier() {
+        let mut lexer = Lexer::new("hello".chars());
+        let token = lexer.next().unwrap().unwrap();
+        match token {
+            Token::Identifier(s) => assert_eq!(s, "hello"),
+            _ => panic!("Expected identifer"),
         }
     }
     #[test]
     //Checking for comments
-    fn test_comment_skipped(){
-        let mut lexer=Lexer::new("// comment\n;".chars());
-        let token=lexer.next().unwrap().unwrap();
-        assert!(matches!(token,Token::Semicolon));
+    fn test_comment_skipped() {
+        let mut lexer = Lexer::new("// comment\n;".chars());
+        let token = lexer.next().unwrap().unwrap();
+        assert!(matches!(token, Token::Semicolon));
     }
     #[test]
     //Checking for total cutoff of comments and EOF ommition
-    fn test_eof(){
-        let mut lexer=Lexer::new("// Comment".chars());
-        let token=lexer.next().unwrap().unwrap();
-        assert!(matches!(token,Token::Eof))
+    fn test_eof() {
+        let mut lexer = Lexer::new("// Comment".chars());
+        let token = lexer.next().unwrap().unwrap();
+        assert!(matches!(token, Token::Eof))
     }
 }
