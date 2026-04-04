@@ -145,6 +145,22 @@ where
                     return Some(Ok(Token::Slash));
                 }
             }
+            //"Sarvil Hello"-> String "Sarvil Hello" Consume untill next "
+            // '"'=>return Some(Ok(Token::Identifier(String::from("found something")))),
+            '"'=>{
+              let mut word=String::new();
+              word.push('"');
+              while let Some(&c)=self.iterator.peek(){
+                  if c=='"'{
+                      word.push('"');
+                      break;
+                  }
+                  word.push(c);
+                  self.iterator.next();
+              }
+              self.iterator.next();
+              return Some(Ok(Token::Identifier(word)))
+            }
             '=' => return Some(Ok(Token::Equal)),
             '<' => {
                 if let Some('=') = self.iterator.peek() {
