@@ -18,6 +18,7 @@ pub enum Token {
     Less,
     LessEqual,
     Identifier(String),
+    Number(i64),
 }
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -38,6 +39,7 @@ impl Display for Token {
             Token::Less => write!(f, "Less"),
             Token::LessEqual => write!(f, "LessEqual"),
             Token::Identifier(s) => write!(f, "{}", s),
+            Token::Number(n)=>write!(f,"{}",n),
         }
     }
 }
@@ -108,6 +110,20 @@ where
         };
 
         match c {
+        //*10 for converting a single digit to mutli digit number
+            c if c.is_ascii_digit()=>{
+                let mut val:i64=c.to_digit(10).map(|d| d as i64).unwrap_or(-1);
+                while let Some(&z)=self.iterator.peek(){
+                    if z.is_ascii_digit(){
+                        self.iterator.next();
+                        let internal_value:i64=z.to_digit(10).map(|d| d as i64).unwrap_or(-1);
+                        val=val*10+internal_value;  
+                    }else{
+                        break;
+                    }
+                }
+                return Some(Ok(Token::Number(val)));
+            }
             c if c.is_whitespace() => self.next(),
             'a'..'z' | 'A'..'Z' => {
                 let mut word = String::from(c);
@@ -120,6 +136,7 @@ where
                 }
                 Some(Ok(Token::Identifier(word)))
             }
+            
             '(' => return Some(Ok(Token::LeftParen)),
             ')' => return Some(Ok(Token::RightParen)),
             '{' => return Some(Ok(Token::LeftBrace)),
