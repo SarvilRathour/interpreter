@@ -1,5 +1,5 @@
 use miette::{Error, WrapErr};
-use std::fmt::Display;
+use std::fmt::{Display, write};
 use std::iter::Peekable;
 pub enum Token {
     LeftParen,
@@ -19,6 +19,22 @@ pub enum Token {
     LessEqual,
     Identifier(String),
     Number(i64),
+    And,
+    Class,
+    Else,
+    False,
+    For,
+    Fun,
+    If,
+    Nil,
+    Or,
+    Print,
+    Return,
+    Super,
+    This,
+    True,
+    Var,
+    While
 }
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -40,6 +56,22 @@ impl Display for Token {
             Token::LessEqual => write!(f, "LessEqual"),
             Token::Identifier(s) => write!(f, "{}", s),
             Token::Number(n)=>write!(f,"{}",n),
+            Token::And=>write!(f, "AND"),
+            Token::Class=>write!(f, "CLASS"),
+            Token::Else=>write!(f, "ELSE"),
+            Token::False=>write!(f, "FALSE"),
+            Token::For=>write!(f, "FOR"),
+            Token::Fun=>write!(f, "FUN"),
+            Token::If=>write!(f, "IF"),
+            Token::Nil=>write!(f, "NIL"),
+            Token::Or=>write!(f, "OR"),
+            Token::Print=>write!(f, "PRINT"),
+            Token::Return=>write!(f, "RETURN"),
+            Token::Super=>write!(f, "SUPER"),
+            Token::This=>write!(f, "THIS"),
+            Token::True=>write!(f, "TRUE"),
+            Token::Var=>write!(f, "VAR"),
+            Token::While=>write!(f, "WHILE"),
         }
     }
 }
@@ -134,7 +166,26 @@ where
                         break;
                     }
                 }
-                Some(Ok(Token::Identifier(word)))
+                let token=match word.as_str(){
+                    "and"=>Token::And,
+                    "class"=>Token::Class,
+                    "else"=>Token::Else,
+                    "false"=>Token::False,
+                    "for"=>Token::For,
+                    "fun"=>Token::Fun,
+                    "if"=>Token::If,
+                    "nil"=>Token::Nil,
+                    "or"=>Token::Or,
+                    "print"=>Token::Print,
+                    "return"=>Token::Return,
+                    "super"=>Token::Super,
+                    "this"=>Token::This,
+                    "true"=>Token::True,
+                    "var"=>Token::Var,
+                    "while"=>Token::While,
+                    _=>Token::Identifier(word),
+                };
+                return Some(Ok(token))
             }
             
             '(' => return Some(Ok(Token::LeftParen)),
