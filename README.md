@@ -15,12 +15,15 @@
 > To perform Lazy iterator I decided to use Iterator trait, Peekable is wrapped around I is to get the peek method. 
 
 `rust 
-  pub struct Lexer<I>
+ pub struct Lexer<I>
 where
-    I:Iterator<Item=char>
+    I: Iterator<Item = char>,
 {
-    iterator:Peekable<I>,
-    eof:bool,
+    iterator: Peekable<I>,
+    eof: bool,
+    line: usize,
+    column: usize,
 }
 `
+
 
