@@ -1,3 +1,3 @@
 hello{"a lj 42 hello" 42 }//Comment
 and else false nil 
-
+print
