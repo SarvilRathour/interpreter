@@ -1,5 +1,6 @@
 use interpreter::Lexer;
 use interpreter::Token;
+use interpreter::parse;
 use std::env;
 use std::fs;
 fn main() {
@@ -34,6 +35,14 @@ fn main() {
             //        Err(e)=>eprintln!("Error:{}",e),
             //    }
             // }
+        }
+        "parser"=>{
+            let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
+                eprintln!("Failed to read file {}", filename);
+                String::new()
+            });
+            let lexer = Lexer::new(file_contents.chars());
+            let parse=parse::new(lexer);
         }
         _ => {
             println!("Unknown command: {}", command);
